@@ -1,5 +1,6 @@
+// screens/SignupScreen.jsx
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import axios from 'axios';
 
 export default function SignupScreen({ route, navigation }) {
@@ -52,19 +53,22 @@ export default function SignupScreen({ route, navigation }) {
       <TextInput
         style={styles.input}
         placeholder="Username"
+        placeholderTextColor="#9c27b0" // Light purple placeholder text color
         value={username}
         onChangeText={setUsername}
       />
       <TextInput
         style={styles.input}
         placeholder="Password"
+        placeholderTextColor="#9c27b0" // Light purple placeholder text color
         value={password}
-        onChangeText={setPassword}
         secureTextEntry
+        onChangeText={setPassword}
       />
       <TextInput
         style={styles.input}
         placeholder="Phone Number"
+        placeholderTextColor="#9c27b0" // Light purple placeholder text color
         value={phoneNumber}
         onChangeText={setPhoneNumber}
       />
@@ -74,18 +78,21 @@ export default function SignupScreen({ route, navigation }) {
         <TextInput
           style={styles.input}
           placeholder="Address"
+          placeholderTextColor="#9c27b0" // Light purple placeholder text color
           value={address}
           onChangeText={setAddress}
         />
       )}
 
-      <Button title="Sign Up" onPress={handleSignup} disabled={isSubmitting} />
+      <TouchableOpacity style={styles.signupButton} onPress={handleSignup} disabled={isSubmitting}>
+        <Text style={styles.signupButtonText}>Sign Up</Text>
+      </TouchableOpacity>
 
       {/* "Already have an account? Login" link */}
       <View style={styles.loginContainer}>
-        <Text>Already have an account?</Text>
+        <Text style={styles.loginText}>Already have an account?</Text>
         <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-          <Text style={styles.loginText}> Login</Text>
+          <Text style={styles.loginLink}> Login</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -95,29 +102,56 @@ export default function SignupScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#f3e5f5', // Light lavender for the background
     justifyContent: 'center',
+    alignItems: 'center',
     paddingHorizontal: 20,
   },
   headerText: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginBottom: 30,
+    color: '#4a148c', // Deep purple for the title text
     textAlign: 'center',
   },
   input: {
-    height: 40,
-    borderColor: 'gray',
+    width: '80%',
+    height: 50,
+    borderColor: '#7b1fa2', // Medium purple border for inputs
     borderWidth: 1,
-    marginBottom: 12,
-    paddingHorizontal: 10,
+    borderRadius: 8,
+    marginBottom: 20,
+    paddingHorizontal: 15,
+    backgroundColor: '#ffffff', // White background for input fields
+    color: '#4a148c', // Text color inside the input
+  },
+  signupButton: {
+    backgroundColor: '#7b1fa2', // Medium purple for signup button
+    width: '80%',
+    paddingVertical: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  signupButtonText: {
+    color: '#ffffff', // White text for the button
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   loginContainer: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     justifyContent: 'center',
-    marginTop: 20,
+    alignItems: 'center',
+    marginTop: 30,
   },
   loginText: {
-    color: 'blue',
-    marginLeft: 5,
+    color: '#4a148c', // Deep purple text
+    fontSize: 16,
+  },
+  loginLink: {
+    color: '#7b1fa2', // Medium purple link text
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginTop:5,
   },
 });
