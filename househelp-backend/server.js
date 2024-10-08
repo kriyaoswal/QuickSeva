@@ -10,9 +10,21 @@ const PORT = process.env.PORT || 5000;
 // Directly hardcode MongoDB URI in the code
 const MONGO_URI = 'mongodb+srv://kriyaoswal:admin@cluster0.cfjlf.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
 
+// Default route
+app.get('/', (req, res) => {
+  res.send('Welcome to the API!');
+});
+
+
 // Middleware
-app.use(cors()); // Enable CORS for cross-origin requests
+app.use(cors({
+  origin: '*', // Allow all origins for development
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+})); // Enable CORS for cross-origin requests
 app.use(express.json()); // Parse incoming JSON requests
+
+
 
 // MongoDB Connection
 mongoose.connect(MONGO_URI)
