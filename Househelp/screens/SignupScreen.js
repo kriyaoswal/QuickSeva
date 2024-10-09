@@ -1,13 +1,14 @@
 // screens/SignupScreen.jsx
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import axios from 'axios';
 
 export default function SignupScreen({ route, navigation }) {
-  const { userType } = route.params; // Retrieve user type from route params
+  
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
+  const {userType = 'user' } = route.params || {}; // Added fallback in case userType is not passed
   const [address, setAddress] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false); // State to manage submission
 
@@ -17,8 +18,21 @@ export default function SignupScreen({ route, navigation }) {
 
     // Validate that all required fields are filled
     if (!username || !password || !phoneNumber || (userType === 'user' && !address)) {
-      console.error('All fields are required');
+      Alert.alert('Error', 'All fields are required'); // Show alert to user
       setIsSubmitting(false); // Reset submitting state
+      return;
+    }
+
+    // Basic validation for password length and phone number format
+    if (password.length < 6) {
+      Alert.alert('Error', 'Password must be at least 6 characters long');
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!/^\d{10}$/.test(phoneNumber)) {
+      Alert.alert('Error', 'Phone number must be 10 digits');
+      setIsSubmitting(false);
       return;
     }
 
@@ -32,14 +46,16 @@ export default function SignupScreen({ route, navigation }) {
 
     try {
       // Replace with your API URL
-      await axios.post('http://192.168.56.1:5000/auth/signup', signupData);
+      await axios.post('http://192.168.150.117:5000/auth/signup', signupData);
       navigation.navigate('Login'); // Navigate after successful signup
     } catch (error) {
       // Handle errors during signup
       if (error.response) {
         console.error('Error response:', error.response.data); // Log error response data
+        Alert.alert('Signup Failed', error.response.data.message || 'An error occurred during signup.');
       } else {
         console.error('Error:', error.message); // Log general error message
+        Alert.alert('Signup Failed', 'An unexpected error occurred.');
       }
     } finally {
       setIsSubmitting(false); // Reset submitting state
@@ -47,7 +63,10 @@ export default function SignupScreen({ route, navigation }) {
   };
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView 
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'} // Adjust for keyboard on iOS
+    >
       <Text style={styles.headerText}>Sign Up as {userType.charAt(0).toUpperCase() + userType.slice(1)}</Text>
 
       <TextInput
@@ -70,6 +89,7 @@ export default function SignupScreen({ route, navigation }) {
         placeholder="Phone Number"
         placeholderTextColor="#9c27b0" // Light purple placeholder text color
         value={phoneNumber}
+        keyboardType="numeric" // Restrict to numeric input
         onChangeText={setPhoneNumber}
       />
       
@@ -85,7 +105,7 @@ export default function SignupScreen({ route, navigation }) {
       )}
 
       <TouchableOpacity style={styles.signupButton} onPress={handleSignup} disabled={isSubmitting}>
-        <Text style={styles.signupButtonText}>Sign Up</Text>
+        <Text style={styles.signupButtonText}>{isSubmitting ? 'Signing Up...' : 'Sign Up'}</Text>
       </TouchableOpacity>
 
       {/* "Already have an account? Login" link */}
@@ -95,7 +115,7 @@ export default function SignupScreen({ route, navigation }) {
           <Text style={styles.loginLink}> Login</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -152,6 +172,6 @@ const styles = StyleSheet.create({
     color: '#7b1fa2', // Medium purple link text
     fontSize: 16,
     fontWeight: 'bold',
-    marginTop:5,
+    marginTop: 5,
   },
 });
