@@ -1,3 +1,4 @@
+//auth.js
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
@@ -7,6 +8,7 @@ const router = express.Router();
 
 // Signup Route
 router.post('/signup', async (req, res) => {
+  console.log('Received signup request:', req.body);
   const { username, password, phone, userType, address } = req.body;
 
   try {

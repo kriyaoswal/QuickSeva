@@ -1,3 +1,5 @@
+// routes/user.js
+
 const express = require('express');
 const User = require('../userModel'); // Adjust path as needed
 
@@ -6,7 +8,7 @@ const router = express.Router();
 // Example route to get all users
 router.get('/', async (req, res) => {
   try {
-    const users = await User.find();
+    const users = await User.find();c
     res.status(200).json(users);
   } catch (error) {
     console.error('Error fetching users:', error); 

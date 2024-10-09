@@ -1,3 +1,5 @@
+//server.js
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -10,18 +12,19 @@ const PORT = process.env.PORT || 5000;
 // Directly hardcode MongoDB URI in the code
 const MONGO_URI = 'mongodb+srv://kriyaoswal:admin@cluster0.cfjlf.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
 
-// Default route
-app.get('/', (req, res) => {
-  res.send('Welcome to the API!');
-});
+// // Default route
+// app.get('/', (req, res) => {
+//   res.send('Welcome to the API!');
+// });
 
 
 // Middleware
 app.use(cors({
-  origin: '*', // Allow all origins for development
-  methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-})); // Enable CORS for cross-origin requests
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true // Allow credentials
+}));
 app.use(express.json()); // Parse incoming JSON requests
 
 
@@ -36,6 +39,6 @@ app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
 
 // Start the server
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server is running on http://192.168.150.117:${PORT}`);
 });
