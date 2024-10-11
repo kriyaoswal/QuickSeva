@@ -14,7 +14,7 @@ const UserRequestScreen = () => {
     useEffect(() => {
         const fetchUserData = async () => {
             try {
-                const response = await axios.get('http://192.168.56.1:5000'); // Replace with your API endpoint
+                const response = await axios.get(`http://192.168.56.1:5000/users/${userId}`) // Replace with your API endpoint
                 setUserInfo(response.data);
             } catch (error) {
                 console.error('Error fetching user data:', error);
