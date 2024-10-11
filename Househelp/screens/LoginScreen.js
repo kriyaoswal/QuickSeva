@@ -9,13 +9,20 @@ export default function LoginScreen({ navigation }) {
 
   const handleLogin = async () => {
     try {
-      const response = await axios.post('http://192.168.150.117:5000/auth/login', { username, password });
-      console.log('Login successful:', response.data);
-      navigation.navigate('Home');
+      const response = await axios.post('http://192.168.20.117:5000/auth/login', { username, password });
+      const { userType } = response.data; // Assuming the API returns userType
+  
+      if (userType === 'user') {
+        navigation.navigate('UserTabs'); // Navigate to user-specific tabs
+      } else if (userType === 'maid') {
+        navigation.navigate('MaidTabs'); // Navigate to maid-specific tabs
+      }
     } catch (error) {
       console.error('Login error:', error.response?.data || error.message);
     }
   };
+  
+  
 
   return (
     <View style={styles.container}>

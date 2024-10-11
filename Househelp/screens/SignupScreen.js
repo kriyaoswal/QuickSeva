@@ -13,54 +13,52 @@ export default function SignupScreen({ route, navigation }) {
   const [isSubmitting, setIsSubmitting] = useState(false); // State to manage submission
 
   const handleSignup = async () => {
-    if (isSubmitting) return; // Prevent further submissions
-    setIsSubmitting(true); // Set submitting state to true
-
-    // Validate that all required fields are filled
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+  
     if (!username || !password || !phoneNumber || (userType === 'user' && !address)) {
-      Alert.alert('Error', 'All fields are required'); // Show alert to user
-      setIsSubmitting(false); // Reset submitting state
+      Alert.alert('Error', 'All fields are required');
+      setIsSubmitting(false);
       return;
     }
-
-    // Basic validation for password length and phone number format
+  
     if (password.length < 6) {
       Alert.alert('Error', 'Password must be at least 6 characters long');
       setIsSubmitting(false);
       return;
     }
-
+  
     if (!/^\d{10}$/.test(phoneNumber)) {
       Alert.alert('Error', 'Phone number must be 10 digits');
       setIsSubmitting(false);
       return;
     }
-
-    // Construct the signup data based on user type
+  
     const signupData = { username, password, phone: phoneNumber, userType };
     if (userType === 'user') {
-      signupData.address = address; // Include address only if userType is 'user'
+      signupData.address = address;
     }
-
-    console.log('Signup Data:', signupData); // Log the signup data for debugging
-
+  
     try {
-      // Replace with your API URL
-      await axios.post('http://192.168.150.117:5000/auth/signup', signupData);
-      navigation.navigate('Login'); // Navigate after successful signup
+      await axios.post('http://192.168.20.117:5000/auth/signup', signupData);
+      
+      // Navigate based on userType
+      if (userType === 'user') {
+        navigation.navigate('UserTabs');
+      } else if (userType === 'maid') {
+        navigation.navigate('MaidTabs');
+      }
     } catch (error) {
-      // Handle errors during signup
       if (error.response) {
-        console.error('Error response:', error.response.data); // Log error response data
         Alert.alert('Signup Failed', error.response.data.message || 'An error occurred during signup.');
       } else {
-        console.error('Error:', error.message); // Log general error message
         Alert.alert('Signup Failed', 'An unexpected error occurred.');
       }
     } finally {
-      setIsSubmitting(false); // Reset submitting state
+      setIsSubmitting(false);
     }
   };
+  
 
   return (
     <KeyboardAvoidingView 
