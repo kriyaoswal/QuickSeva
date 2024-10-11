@@ -51,6 +51,8 @@ io.on('connection', (socket) => {
 // Routes
 app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
+app.use('/requests', requestRoutes);
+
 
 // Start the server
 server.listen(PORT, () => {

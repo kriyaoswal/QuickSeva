@@ -50,11 +50,14 @@ router.post('/login', async (req, res) => {
 
     // Generate JWT token
     const token = jwt.sign({ id: user._id, userType: user.userType }, config.jwtSecret);
-    res.status(200).json({ token });
+
+    // Send back token and userType
+    res.status(200).json({ token, userType: user.userType });
   } catch (error) {
     console.error('Login Error:', error); // Log error details
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
 
 module.exports = router;

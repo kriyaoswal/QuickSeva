@@ -4,12 +4,13 @@ const User = require('../userModel'); // Adjust path as needed
 const router = express.Router();
 
 // Example route to get all users
-router.get('/', async (req, res) => {
+router.get('/:id', async (req, res) => {
   try {
-    const users = await User.find();
-    res.status(200).json(users);
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.status(200).json(user);
   } catch (error) {
-    console.error('Error fetching users:', error); 
+    console.error('Error fetching user:', error);
     res.status(500).json({ message: error.message });
   }
 });
