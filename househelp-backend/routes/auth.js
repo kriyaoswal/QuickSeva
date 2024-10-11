@@ -2,6 +2,7 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const User = require('../userModel');
+const config = require('../config');
 
 const router = express.Router();
 
@@ -48,7 +49,7 @@ router.post('/login', async (req, res) => {
     if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
 
     // Generate JWT token
-    const token = jwt.sign({ id: user._id, userType: user.userType }, process.env.JWT_SECRET);
+    const token = jwt.sign({ id: user._id, userType: user.userType }, config.jwtSecret);
     res.status(200).json({ token });
   } catch (error) {
     console.error('Login Error:', error); // Log error details

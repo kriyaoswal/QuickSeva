@@ -9,6 +9,11 @@ const userSchema = new mongoose.Schema({
   phone: { type: String, required: true },
   userType: { type: String, enum: ['user', 'maid'], required: true },
   address: { type: String }, // Optional for 'maid', required for 'user'
+  requests: [{ // An array of request objects
+    maidId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Reference to maid
+    requestTime: { type: Date, required: true },
+    status: { type: String, default: 'pending' } // Status of the request
+  }]
 });
 
 // Middleware to hash the password before saving
