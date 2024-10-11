@@ -102,7 +102,7 @@ export default function SignupScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f3e5f5', // Light lavender for the background
+    backgroundColor: '#ffffff', // Light lavender for the background
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,

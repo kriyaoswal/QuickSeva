@@ -11,7 +11,15 @@ export default function LoginScreen({ navigation }) {
     try {
       const response = await axios.post('http://192.168.56.1:5000/auth/login', { username, password });
       console.log('Login successful:', response.data);
-      navigation.navigate('Home');
+
+      const { userType } = response.data; // Assuming your response includes userType
+      if (userType === 'user') {
+        console.log('Navigating to UserRequestScreen');
+        navigation.navigate('UserRequestScreen'); // Navigate to User screen
+      } else if (userType === 'maid') {
+        console.log('Navigating to MaidRequestScreen');
+        navigation.navigate('MaidRequestScreen'); // Navigate to Maid screen
+      }
     } catch (error) {
       console.error('Login error:', error.response?.data || error.message);
     }

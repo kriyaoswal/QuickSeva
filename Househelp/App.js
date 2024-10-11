@@ -6,6 +6,8 @@ import SplashScreen from './screens/SplashScreen';
 import SelectUserTypeScreen from './screens/SelectUserTypeScreen';
 import LoginScreen from './screens/LoginScreen';
 import SignupScreen from './screens/SignupScreen';
+import UserScreen from './screens/UserRequestScreen'; // User screen component
+import MaidScreen from './screens/MaidRequestScreen';
 
 const Stack = createStackNavigator();
 
@@ -17,6 +19,8 @@ export default function App() {
         <Stack.Screen name="SelectUserType" component={SelectUserTypeScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Signup" component={SignupScreen} />
+        <Stack.Screen name="UserRequestScreen" component={UserScreen} /> 
+        <Stack.Screen name="MaidRequestScreen" component={MaidScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

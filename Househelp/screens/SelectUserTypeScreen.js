@@ -32,7 +32,7 @@ export default function SelectUserTypeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f3e5f5', // Light lavender background for a soft touch
+    backgroundColor: '#ffffff', // Light lavender background for a soft touch
     justifyContent: 'center',
     alignItems: 'center',
   },
