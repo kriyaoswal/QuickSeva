@@ -3,7 +3,7 @@ import { View, Text, TextInput, Button, Alert } from 'react-native';
 import axios from 'axios';
 import io from 'socket.io-client';
 
-const socket = io(''); // Replace with your server URL
+const socket = io('http://192.168.56.1:5000'); // Replace with your server URL
 
 const UserRequestScreen = () => {
     const [date, setDate] = useState('');
@@ -14,13 +14,19 @@ const UserRequestScreen = () => {
     useEffect(() => {
         const fetchUserData = async () => {
             try {
-                const response = await axios.get(`http://192.168.56.1:5000/users/${userId}`) // Replace with your API endpoint
-                setUserInfo(response.data);
+                const response = await axios.get(`http://192.168.56.1:5000/users/${_Id}`);  // Make sure userId is correct
+                const data = response.data;
+                
+                if (!data) {
+                    throw new Error('User data is null or undefined');
+                }
+                setUserInfo(data);  // Set user data to state
             } catch (error) {
                 console.error('Error fetching user data:', error);
                 Alert.alert('Error', 'Failed to fetch user data');
             }
         };
+        
 
         fetchUserData();
 
@@ -50,7 +56,7 @@ const UserRequestScreen = () => {
             date,
             time,
             details,
-            userId: userInfo._id, // Use fetched user ID
+            userId: userInfo._Id, // Use fetched user ID
             username: userInfo.username, // User's username
             phone: userInfo.phone, // User's phone
             address: userInfo.address // User's address
@@ -63,7 +69,7 @@ const UserRequestScreen = () => {
 
     return (
         <View style={{ padding: 20 }}>
-            {userInfo && (
+            {userInfo ? (
                 <>
                     <Text>User Info:</Text>
                     <Text>Username: {userInfo.username}</Text>
@@ -90,8 +96,9 @@ const UserRequestScreen = () => {
                     />
                     <Button title="Send Request" onPress={handleRequest} />
                 </>
+            ) : (
+                <Text>Loading user info...</Text>
             )}
-            {!userInfo && <Text>Loading user info...</Text>}
         </View>
     );
 };
