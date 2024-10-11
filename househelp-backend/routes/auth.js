@@ -1,8 +1,8 @@
-//auth.js
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const User = require('../userModel');
+const config = require('../config'); // Import the config file to get jwtSecret
 
 const router = express.Router();
 
@@ -49,8 +49,12 @@ router.post('/login', async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
 
-    // Generate JWT token
-    const token = jwt.sign({ id: user._id, userType: user.userType }, process.env.JWT_SECRET);
+    // Generate JWT token using secret from config
+    const token = jwt.sign(
+      { id: user._id, userType: user.userType },
+      config.jwtSecret,  // Use jwtSecret from config.js
+      { expiresIn: '1h' }
+    );
     res.status(200).json({ token });
   } catch (error) {
     console.error('Login Error:', error); // Log error details

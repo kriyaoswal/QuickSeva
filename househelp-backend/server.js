@@ -40,5 +40,5 @@ app.use('/users', userRoutes);
 
 // Start the server
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server is running on http://192.168.150.117:${PORT}`);
+  console.log(`Server is running on http://192.168.20.117:${PORT}`);
 });
