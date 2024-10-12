@@ -1,19 +1,24 @@
 const express = require('express');
 const router = express.Router();
-const Request = require('../requestModel'); // Assuming the request model is in the root directory
-const User = require('../userModel'); // Assuming the user model is in the root directory
+const Request = require('../requestModel');
+const User = require('../userModel');
 
 // Route to create a new request
 router.post('/request-maid', async (req, res) => {
-  const { userId, maidId, requestTime } = req.body;
+  const { userId, maidUsernames, requestTime } = req.body;
 
   try {
     // Create a new request
-    const newRequest = new Request({ userId, maidId, requestTime });
+    const newRequest = new Request({ userId, maidUsernames, requestTime });
     await newRequest.save();
 
-    // Emit the request to all maids (if using socket.io)
-    req.app.get('io').emit('newRequest', newRequest);
+    // Emit the request to all connected maids
+    maidUsernames.forEach(maidUsername => {
+      const socketId = req.app.get('io').sockets[maidSockets[maidUsername]];
+      if (socketId) {
+        req.app.get('io').to(socketId).emit('newRequest', newRequest);
+      }
+    });
 
     res.status(201).json({ message: 'Request sent successfully', request: newRequest });
   } catch (error) {
@@ -24,7 +29,7 @@ router.post('/request-maid', async (req, res) => {
 
 // Route to accept a request
 router.post('/accept-request', async (req, res) => {
-  const { requestId, maidId } = req.body;
+  const { requestId, maidUsername } = req.body;
 
   try {
     // Find the request and update its status to 'accepted'
@@ -43,7 +48,7 @@ router.post('/accept-request', async (req, res) => {
 
 // Route to reject a request
 router.post('/reject-request', async (req, res) => {
-  const { requestId, maidId } = req.body;
+  const { requestId, maidUsername } = req.body;
 
   try {
     // Find the request and update its status to 'rejected'

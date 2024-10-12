@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const requestSchema = new Schema({
-  maidId: { type: Schema.Types.ObjectId, ref: 'User' },
+  maidUsernames: [{ type: String }],  // Array of maid usernames
   userId: { type: Schema.Types.ObjectId, ref: 'User' },
   requestTime: { type: Date, default: Date.now },
   status: { type: String, enum: ['pending', 'accepted', 'rejected'], default: 'pending' },

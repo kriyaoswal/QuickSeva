@@ -6,6 +6,7 @@ const { Server } = require('socket.io');
 const requestRoutes = require('./routes/request');
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
+const User = require('./userModel');
 
 const app = express();
 const server = http.createServer(app);
@@ -32,19 +33,28 @@ mongoose.connect(MONGO_URI)
   .then(() => console.log('MongoDB connected successfully'))
   .catch((error) => console.log('MongoDB connection error:', error));
 
+// Track connected sockets
+const maidSockets = {}; // Store maid usernames and socket IDs
+
 // Socket.IO connection
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
 
-  // Handle requests from the user
-  socket.on('sendRequest', (requestData) => {
-    // Emit request to all maids (You might want to filter this based on your logic)
-    io.emit('newRequest', requestData);
+  // Store the maid's username and socket ID
+  socket.on('registerMaid', (maidUsername) => {
+    maidSockets[maidUsername] = socket.id;
+    console.log(`${maidUsername} is connected with socket ID ${socket.id}`);
   });
 
   // Handle disconnection
   socket.on('disconnect', () => {
     console.log('A user disconnected:', socket.id);
+    // Remove from the maidSockets
+    Object.keys(maidSockets).forEach((username) => {
+      if (maidSockets[username] === socket.id) {
+        delete maidSockets[username];
+      }
+    });
   });
 });
 
@@ -52,7 +62,6 @@ io.on('connection', (socket) => {
 app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
 app.use('/requests', requestRoutes);
-
 
 // Start the server
 server.listen(PORT, () => {

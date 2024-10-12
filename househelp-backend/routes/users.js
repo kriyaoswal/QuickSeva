@@ -1,12 +1,14 @@
+//routes/users.js
+
 const express = require('express');
-const User = require('../userModel'); // Adjust path as needed
+const User = require('../userModel');
 
 const router = express.Router();
 
-// Route to get user info by ID
-router.get('/:_Id', async (req, res) => {
+// Route to get user info by username instead of ID
+router.get('/:username', async (req, res) => {
   try {
-    const user = await User.findById(req.params._Id); // Changed to userId
+    const user = await User.findOne({ username: req.params.username }); // Find user by username
     if (!user) return res.status(404).json({ message: 'User not found' });
     res.status(200).json(user);
   } catch (error) {
