@@ -5,35 +5,39 @@ import io from 'socket.io-client';
 
 const MaidScreen = () => {
   const [requests, setRequests] = useState([]);
-  const [maidId, setMaidId] = useState(''); // This should be set when the maid logs in
+  const [maidUsername, setMaidUsername] = useState(''); // Store the maid's username
 
   useEffect(() => {
-    // Fetch the maid's ID from your auth context or storage
-    const fetchMaidId = async () => {
-      // Replace this with your method of fetching the maid's ID
-      const storedMaidId = await AsyncStorage.getItem('maidId'); // Example using AsyncStorage
-      setMaidId(storedMaidId);
+    // Fetch the maid's username (you might get this from storage or auth context)
+    const fetchMaidUsername = async () => {
+      // Assuming you stored the maid's username after login
+      const storedMaidUsername = await AsyncStorage.getItem('maidUsername');
+      setMaidUsername(storedMaidUsername);
     };
 
-    fetchMaidId();
+    fetchMaidUsername();
 
-    const socket = io('http://192.168.56.1:5000'); // Replace with your server URL
+    const socket = io('http://192.168.0.101:5000'); // Replace with your server URL
 
+    // Register the maid's username when they connect
+    socket.emit('registerMaid', storedMaidUsername);
+
+    // Listen for new requests
     socket.on('newRequest', (requestData) => {
-      // Update state to show this request to the maid
+      console.log('New request received:', requestData);
       setRequests((prevRequests) => [...prevRequests, requestData]);
     });
 
     return () => {
-      socket.disconnect();
+      socket.disconnect(); // Clean up when the component unmounts
     };
   }, []);
 
   const handleAcceptRequest = async (request) => {
     try {
-      await axios.post('http://192.168.56.1:5000/accept-request', {
+      await axios.post('http://192.168.0.101:5000/accept-request', {
         requestId: request._id,
-        maidId,
+        maidUsername,
       });
       Alert.alert('Success', 'Request accepted!');
     } catch (error) {
@@ -44,9 +48,9 @@ const MaidScreen = () => {
 
   const handleRejectRequest = async (request) => {
     try {
-      await axios.post('http://192.168.56.1:5000/reject-request', {
+      await axios.post('http://192.168.0.101:5000/reject-request', {
         requestId: request._id,
-        maidId,
+        maidUsername,
       });
       Alert.alert('Success', 'Request rejected!');
     } catch (error) {
@@ -67,11 +71,9 @@ const MaidScreen = () => {
           renderItem={({ item }) => (
             <View style={{ marginBottom: 20, padding: 10, borderWidth: 1 }}>
               <Text>User Info:</Text>
-              <Text>Username: {item.username}</Text>
-              <Text>Phone: {item.phone}</Text>
-              <Text>Address: {item.address}</Text>
-              <Text>Date: {item.date}</Text>
-              <Text>Time: {item.time}</Text>
+              <Text>Username: {item.userId.username}</Text>
+              <Text>Phone: {item.userId.phone}</Text>
+              <Text>Request Time: {new Date(item.requestTime).toLocaleString()}</Text>
               <Button title="Accept" onPress={() => handleAcceptRequest(item)} />
               <Button title="Reject" onPress={() => handleRejectRequest(item)} />
             </View>
