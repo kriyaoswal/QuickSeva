@@ -15,10 +15,8 @@ const UserRequestScreen = ({ route }) => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        console.log(`Fetching user data for username: ${username}`);
         const response = await axios.get(`http://192.168.0.100:5000/users/${username}`);
-        const data = response.data;
-        setUserInfo(data);
+        setUserInfo(response.data);
       } catch (error) {
         console.error('Error fetching user data:', error);
         Alert.alert('Error', 'Failed to fetch user data');
@@ -27,7 +25,6 @@ const UserRequestScreen = ({ route }) => {
 
     fetchUserData();
 
-    // Listen for accepted requests
     socket.on('maidAccepted', (response) => {
       Alert.alert(`Your request has been accepted by maid with ID: ${response.maidId}`);
     });
@@ -42,7 +39,7 @@ const UserRequestScreen = ({ route }) => {
     };
   }, [username]);
 
-  const handleRequest = () => {
+  const handleRequest = async () => {
     if (!date || !time || !details) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
@@ -58,9 +55,18 @@ const UserRequestScreen = ({ route }) => {
       address: userInfo.address,
     };
 
-    // Emit the request to the server
-    socket.emit('maidRequest', request);
-    Alert.alert('Success', 'Request sent successfully!');
+    try {
+      // Save the request to the backend via REST API
+      const response = await axios.post('http://192.168.0.100:5000/requests/new', request);
+      console.log('Request saved to database:', response.data);
+
+      // Emit the request to the server via socket
+      socket.emit('maidRequest', request);
+      Alert.alert('Success', 'Request sent successfully!');
+    } catch (error) {
+      console.error('Error saving request:', error);
+      Alert.alert('Error', 'Failed to send request');
+    }
   };
 
   return (
