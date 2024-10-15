@@ -3,10 +3,10 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const http = require('http');
 const { Server } = require('socket.io');
-const User = require('./userModel'); // Ensure this model is correctly defined
-const requestRoutes = require('./routes/request');
+const requestRoutes = require('./routes/request'); // Import the request route
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
+const User = require('./userModel');
 
 const app = express();
 const server = http.createServer(app);
@@ -20,35 +20,34 @@ const io = new Server(server, {
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = 'mongodb+srv://kriyaoswal:admin@cluster0.cfjlf.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
 
-app.use(cors({ origin: '*', methods: ['GET', 'POST'], allowedHeaders: ['Content-Type', 'Authorization'] }));
+// Middleware
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
+// MongoDB Connection
 mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('MongoDB connected successfully'))
   .catch((error) => console.log('MongoDB connection error:', error));
 
-io.on('connection', (socket) => {
+// Socket.IO connection
+io.on('connection', async (socket) => {
   console.log('A user connected: ' + socket.id);
 
-  // Assign socket ID to maids when they connect
-  socket.on('registerMaid', async (maidUsername) => {
-    try {
-      await User.findOneAndUpdate({ username: maidUsername }, { socketId: socket.id });
-      console.log(`Maid ${maidUsername} is now registered with socket ID ${socket.id}`);
-    } catch (error) {
-      console.error('Error registering maid:', error);
-    }
-  });
-
-  // Handle maid request from users
   socket.on('maidRequest', async (requestData) => {
     try {
+      // Find all maids
       const maids = await User.find({ userType: 'maid' });
+
       if (maids.length === 0) {
         socket.emit('noMaidFound');
         return;
       }
 
+      // Send request to all maids
       maids.forEach((maid) => {
         if (maid.socketId) {
           io.to(maid.socketId).emit('maidRequest', requestData);
@@ -59,10 +58,9 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Listen for maid accepting the request
   socket.on('acceptRequest', async ({ maidId, requestData }) => {
     try {
-      const maid = await User.findOne({ username: maidId });
+      const maid = await User.findById(maidId);
       if (maid) {
         io.to(requestData.userId).emit('maidAccepted', { maidId: maid._id, maidName: maid.username });
       }
@@ -77,10 +75,11 @@ io.on('connection', (socket) => {
   });
 });
 
+// Routes
+app.use('/auth', authRoutes);
+app.use('/users', userRoutes);
+app.use('/requests', requestRoutes); // Register the request route
+
 server.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
-
-app.use('/auth', authRoutes);
-app.use('/users', userRoutes);
-app.use('/requests', requestRoutes);
