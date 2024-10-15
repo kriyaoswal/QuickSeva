@@ -32,7 +32,7 @@ export default function SignupScreen({ route, navigation }) {
 
     try {
       // Replace with your API URL
-      await axios.post('http://192.168.0.101:5000/auth/signup', signupData);
+      await axios.post('http://192.168.0.100:5000/auth/signup', signupData);
       navigation.navigate('Login'); // Navigate after successful signup
     } catch (error) {
       // Handle errors during signup

@@ -3,33 +3,25 @@ import { View, Text, TextInput, Button, Alert, StyleSheet } from 'react-native';
 import axios from 'axios';
 import io from 'socket.io-client';
 
-const socket = io('http://192.168.0.101:5000'); // Replace with your server URL
+const socket = io('http://192.168.0.100:5000'); // Replace with your server URL
 
 const UserRequestScreen = ({ route }) => {
-  const { username } = route.params; // Get the username passed via navigation
+  const { username } = route.params;
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [details, setDetails] = useState('');
   const [userInfo, setUserInfo] = useState(null);
-  const [maidUsernames, setMaidUsernames] = useState([]); // Store maid usernames
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         console.log(`Fetching user data for username: ${username}`);
-        const response = await axios.get(`http://192.168.0.101:5000/users/${username}`);
+        const response = await axios.get(`http://192.168.0.100:5000/users/${username}`);
         const data = response.data;
         setUserInfo(data);
-
-        // Fetch all maid usernames
-        const maidsResponse = await axios.get('http://192.168.0.101:5000/users/maids');
-        const maidData = maidsResponse.data;
-        const maidUsernamesList = maidData.map(maid => maid.username); // Collect all maid usernames
-        setMaidUsernames(maidUsernamesList);
-
       } catch (error) {
-        console.error('Error fetching user or maid data:', error);
-        Alert.alert('Error', 'Failed to fetch user or maid data');
+        console.error('Error fetching user data:', error);
+        Alert.alert('Error', 'Failed to fetch user data');
       }
     };
 
@@ -37,10 +29,9 @@ const UserRequestScreen = ({ route }) => {
 
     // Listen for accepted requests
     socket.on('maidAccepted', (response) => {
-      Alert.alert(`Your request has been accepted by maid: ${response.maidUsername}`);
+      Alert.alert(`Your request has been accepted by maid with ID: ${response.maidId}`);
     });
 
-    // Listen for no maid found
     socket.on('noMaidFound', () => {
       Alert.alert('No maids found to accept your request.');
     });
@@ -57,25 +48,19 @@ const UserRequestScreen = ({ route }) => {
       return;
     }
 
-    if (maidUsernames.length === 0) {
-      Alert.alert('Error', 'No maids available');
-      return;
-    }
-
     const request = {
       date,
       time,
       details,
-      userId: userInfo._id, // Use fetched user ID
-      username: userInfo.username, // User's username
-      phone: userInfo.phone, // User's phone
-      address: userInfo.address, // User's address
-      maidUsernames, // List of all maid usernames
+      userId: userInfo._id,
+      username: userInfo.username,
+      phone: userInfo.phone,
+      address: userInfo.address,
     };
 
     // Emit the request to the server
     socket.emit('maidRequest', request);
-    Alert.alert('Success', 'Request sent to all available maids!');
+    Alert.alert('Success', 'Request sent successfully!');
   };
 
   return (

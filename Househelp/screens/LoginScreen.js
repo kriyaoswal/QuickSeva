@@ -9,7 +9,7 @@ export default function LoginScreen({ navigation }) {
 
   const handleLogin = async () => {
     try {
-      const response = await axios.post('http://192.168.0.101:5000/auth/login', { username, password });
+      const response = await axios.post('http://192.168.0.100:5000/auth/login', { username, password });
       console.log('Login successful:', response.data);
   
       const { userType } = response.data; // Assuming your response includes userType

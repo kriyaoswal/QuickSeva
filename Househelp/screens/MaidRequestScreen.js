@@ -1,87 +1,60 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Button, Alert, FlatList } from 'react-native';
-import axios from 'axios';
+import React, { useState, useEffect } from 'react';
+import { View, Text, Button, Alert, StyleSheet } from 'react-native';
 import io from 'socket.io-client';
 
-const MaidScreen = () => {
-  const [requests, setRequests] = useState([]);
-  const [maidUsername, setMaidUsername] = useState(''); // Store the maid's username
+const socket = io('http://192.168.0.100:5000'); // Replace with your server URL
+
+const MaidRequestScreen = ({ route }) => {
+  const { storedMaidUsername } = route.params;
+  const [incomingRequest, setIncomingRequest] = useState(null);
 
   useEffect(() => {
-    // Fetch the maid's username (you might get this from storage or auth context)
-    const fetchMaidUsername = async () => {
-      // Assuming you stored the maid's username after login
-      const storedMaidUsername = await AsyncStorage.getItem('maidUsername');
-      setMaidUsername(storedMaidUsername);
-    };
-
-    fetchMaidUsername();
-
-    const socket = io('http://192.168.0.101:5000'); // Replace with your server URL
-
-    // Register the maid's username when they connect
+    // Register maid with their socket ID when they open the screen
     socket.emit('registerMaid', storedMaidUsername);
 
-    // Listen for new requests
-    socket.on('newRequest', (requestData) => {
-      console.log('New request received:', requestData);
-      setRequests((prevRequests) => [...prevRequests, requestData]);
+    // Listen for maid requests
+    socket.on('maidRequest', (request) => {
+      setIncomingRequest(request);
+      Alert.alert(`New request from user: ${request.username}`);
     });
 
     return () => {
-      socket.disconnect(); // Clean up when the component unmounts
+      socket.off('maidRequest');
     };
-  }, []);
+  }, [storedMaidUsername]);
 
-  const handleAcceptRequest = async (request) => {
-    try {
-      await axios.post('http://192.168.0.101:5000/accept-request', {
-        requestId: request._id,
-        maidUsername,
-      });
-      Alert.alert('Success', 'Request accepted!');
-    } catch (error) {
-      console.error('Error accepting request:', error);
-      Alert.alert('Error', 'Failed to accept request');
-    }
-  };
-
-  const handleRejectRequest = async (request) => {
-    try {
-      await axios.post('http://192.168.0.101:5000/reject-request', {
-        requestId: request._id,
-        maidUsername,
-      });
-      Alert.alert('Success', 'Request rejected!');
-    } catch (error) {
-      console.error('Error rejecting request:', error);
-      Alert.alert('Error', 'Failed to reject request');
+  const handleAccept = () => {
+    if (incomingRequest) {
+      socket.emit('acceptRequest', { maidId: storedMaidUsername, requestData: incomingRequest });
+      Alert.alert('You have accepted the request!');
     }
   };
 
   return (
     <View style={{ padding: 20 }}>
-      <Text style={{ fontSize: 24, marginBottom: 20 }}>Incoming Requests</Text>
-      {requests.length === 0 ? (
-        <Text>No incoming requests.</Text>
+      {incomingRequest ? (
+        <>
+          <Text style={styles.blackText}>New Request:</Text>
+          <Text style={styles.blackText}>User: {incomingRequest.username}</Text>
+          <Text style={styles.blackText}>Phone: {incomingRequest.phone}</Text>
+          <Text style={styles.blackText}>Address: {incomingRequest.address}</Text>
+          <Text style={styles.blackText}>Date: {incomingRequest.date}</Text>
+          <Text style={styles.blackText}>Time: {incomingRequest.time}</Text>
+          <Text style={styles.blackText}>Details: {incomingRequest.details}</Text>
+
+          <Button title="Accept Request" onPress={handleAccept} />
+        </>
       ) : (
-        <FlatList
-          data={requests}
-          keyExtractor={(item) => item._id}
-          renderItem={({ item }) => (
-            <View style={{ marginBottom: 20, padding: 10, borderWidth: 1 }}>
-              <Text>User Info:</Text>
-              <Text>Username: {item.userId.username}</Text>
-              <Text>Phone: {item.userId.phone}</Text>
-              <Text>Request Time: {new Date(item.requestTime).toLocaleString()}</Text>
-              <Button title="Accept" onPress={() => handleAcceptRequest(item)} />
-              <Button title="Reject" onPress={() => handleRejectRequest(item)} />
-            </View>
-          )}
-        />
+        <Text style={styles.blackText}>No new requests...</Text>
       )}
     </View>
   );
 };
 
-export default MaidScreen;
+const styles = StyleSheet.create({
+  blackText: {
+    color: 'black',
+  },
+});
+
+export default MaidRequestScreen;
