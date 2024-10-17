@@ -1,18 +1,38 @@
-//MaidRequestScreen.js
 import React, { useState, useEffect } from 'react';
 import { View, Text, Button, Alert, StyleSheet, FlatList } from 'react-native';
 import axios from 'axios';
 import io from 'socket.io-client';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
 
 const socket = io('http://192.168.0.100:5000'); // Replace with your server URL
 
-const MaidRequestScreen = ({ route }) => {
-  const { storedMaidUsername } = route.params; // Maid's username passed via navigation
+const MaidRequestScreen = ({ navigation }) => {
+  const [storedMaidUsername, setStoredMaidUsername] = useState(null); // To store the maid's username
   const [pendingRequests, setPendingRequests] = useState([]);
 
+  // Function to retrieve maid's username from AsyncStorage
+  const getStoredMaidUsername = async () => {
+    try {
+      const username = await AsyncStorage.getItem('maidUsername'); // Get the username from AsyncStorage
+      if (username) {
+        setStoredMaidUsername(username); // Set the username if it exists
+      } else {
+        Alert.alert('Error', 'Maid username not found, please log in again.');
+        navigation.goBack(); // Navigate back if maid username is missing
+      }
+    } catch (error) {
+      console.error('Error retrieving maid username:', error);
+    }
+  };
+
   useEffect(() => {
-    // Register the maid with their username
-    socket.emit('registerMaid', storedMaidUsername);
+    // Retrieve maid's username when component mounts
+    getStoredMaidUsername();
+
+    // If username is set, register the maid with the socket
+    if (storedMaidUsername) {
+      socket.emit('registerMaid', storedMaidUsername);
+    }
 
     // Fetch pending requests when the component mounts
     const fetchPendingRequests = async () => {
@@ -36,7 +56,7 @@ const MaidRequestScreen = ({ route }) => {
     return () => {
       socket.off('maidRequest');
     };
-  }, [storedMaidUsername]);
+  }, [storedMaidUsername, navigation]);
 
   const handleAccept = async (requestId) => {
     const requestToAccept = pendingRequests.find(req => req._id === requestId);
@@ -44,18 +64,28 @@ const MaidRequestScreen = ({ route }) => {
       Alert.alert('Error', 'Request not found');
       return;
     }
-  
+
     try {
-      await axios.put(`http://192.168.0.100:5000/requests/status/${requestId}`, { status: 'accepted' });
-      setPendingRequests((prevRequests) => prevRequests.filter((req) => req._id !== requestId)); // Remove accepted request from list
+      console.log('PUT request data:', { requestId, status: 'accepted' });
+      console.log('POST request data:', { maidUsername: storedMaidUsername, requestData: requestToAccept });
+
+      // Execute both requests in parallel
+      await Promise.all([
+        axios.put(`http://192.168.0.100:5000/requests/status/${requestId}`, { status: 'accepted' }),
+        axios.post('http://192.168.0.100:5000/acceptedrequests', {
+          maidUsername: storedMaidUsername,
+          requestData: requestToAccept,
+        }),
+      ]);
+
+      // Remove accepted request from the pending list
+      setPendingRequests((prevRequests) => prevRequests.filter((req) => req._id !== requestId));
       Alert.alert('You have accepted the request!');
-      socket.emit('acceptRequest', { maidUsername: storedMaidUsername, requestData: requestToAccept }); // Pass the correct data
     } catch (error) {
-      console.error('Error accepting request:', error);
+      console.error('Error accepting request:', error.response?.data || error.message);
       Alert.alert('Error', 'Failed to accept request');
     }
   };
-  
 
   const handleDeny = async (requestId) => {
     try {

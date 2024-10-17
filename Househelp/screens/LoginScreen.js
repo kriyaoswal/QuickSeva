@@ -1,11 +1,20 @@
-// screens/LoginScreen.jsx
 import React, { useState } from 'react';
 import { View, TextInput, Button, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
 
 export default function LoginScreen({ navigation }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+
+  // Save maid's username after login
+  const saveMaidUsername = async (username) => {
+    try {
+      await AsyncStorage.setItem('maidUsername', username); // Store username in AsyncStorage
+    } catch (error) {
+      console.error('Error saving maid username:', error);
+    }
+  };
 
   const handleLogin = async () => {
     try {
@@ -15,18 +24,17 @@ export default function LoginScreen({ navigation }) {
       const { userType } = response.data; // Assuming your response includes userType
       if (userType === 'user') {
         console.log('Navigating to UserRequestScreen');
-        // Pass username as a parameter when navigating
         navigation.navigate('UserRequestScreen', { username });
       } else if (userType === 'maid') {
         console.log('Navigating to MaidRequestScreen');
-        // Pass username as a parameter when navigating
-        navigation.navigate('MaidRequestScreen', { username });
+        // Save the maid's username to AsyncStorage
+        await saveMaidUsername(username);
+        navigation.navigate('MaidRequestScreen');
       }
     } catch (error) {
       console.error('Login error:', error.response?.data || error.message);
     }
   };
-  
 
   return (
     <View style={styles.container}>

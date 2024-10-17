@@ -12,6 +12,7 @@ const UserRequestScreen = ({ route }) => {
   const [details, setDetails] = useState('');
   const [userInfo, setUserInfo] = useState(null);
   const [acceptedMaidInfo, setAcceptedMaidInfo] = useState(null); // State for accepted maid info
+  const [acceptedRequestId, setAcceptedRequestId] = useState(null); // State for accepted request ID
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -28,10 +29,10 @@ const UserRequestScreen = ({ route }) => {
 
     // Listen for accepted requests
     socket.on('maidAccepted', async (response) => {
-      // Fetch the accepted maid's info from the new collection
       try {
-        const maidResponse = await axios.get(`http://192.168.0.100:5000/accepted-requests/${response.maidId}`);
-        setAcceptedMaidInfo(maidResponse.data); // Store the accepted maid's info
+        const maidResponse = await axios.get(`http://192.168.0.100:5000/acceptedrequests/${response.requestId}`);
+        setAcceptedMaidInfo(maidResponse.data);
+        setAcceptedRequestId(response.requestId);
         Alert.alert(`Your request has been accepted by maid: ${response.maidUsername}`);
       } catch (error) {
         console.error('Error fetching accepted maid info:', error);
@@ -53,20 +54,33 @@ const UserRequestScreen = ({ route }) => {
       date,
       time,
       details,
-      userId: userInfo._id, // Use fetched user ID
-      username: userInfo.username, // User's username
-      phone: userInfo.phone, // User's phone
-      address: userInfo.address, // User's address
+      userId: userInfo._id,
+      username: userInfo.username,
+      phone: userInfo.phone,
+      address: userInfo.address,
     };
 
     try {
-      // Emit the request to the server and save to the database
-      await axios.post('http://192.168.0.100:5000/requests', request); // Updated route here
-      socket.emit('maidRequest', request); // Send request to all maids
+      await axios.post('http://192.168.0.100:5000/requests', request);
+      socket.emit('maidRequest', request);
       Alert.alert('Success', 'Request sent successfully!');
     } catch (error) {
       console.error('Error sending request:', error);
       Alert.alert('Error', 'Failed to send request');
+    }
+  };
+
+  const fetchAcceptedRequestInfo = async () => {
+    try {
+      const response = await axios.get(`http://192.168.0.100:5000/acceptedrequests/${userInfo.username}`);
+      if (response.data.length > 0) {
+        setAcceptedMaidInfo(response.data[0]); // Assuming you want the latest accepted request
+      } else {
+        Alert.alert('No accepted requests found');
+      }
+    } catch (error) {
+      console.error('Error fetching accepted request info:', error);
+      Alert.alert('Error', 'Failed to fetch accepted request info');
     }
   };
 
@@ -99,11 +113,14 @@ const UserRequestScreen = ({ route }) => {
           />
           <Button title="Send Request" onPress={handleRequest} />
 
+          {/* Button to fetch accepted request info */}
+          <Button title="Fetch Accepted Request Info" onPress={fetchAcceptedRequestInfo} />
+
           {/* Section to show accepted maid info */}
           {acceptedMaidInfo && (
             <View style={styles.maidInfoContainer}>
               <Text style={styles.blackText}>Maid Accepted Your Request:</Text>
-              <Text style={styles.blackText}>Username: {acceptedMaidInfo.maidUsername}</Text>
+              <Text style={styles.blackText}>Username: {acceptedMaidInfo.username1}</Text>
               <Text style={styles.blackText}>Phone: {acceptedMaidInfo.maidPhone}</Text>
               <Text style={styles.blackText}>Address: {acceptedMaidInfo.address}</Text>
               <Text style={styles.blackText}>Date: {acceptedMaidInfo.date}</Text>
