@@ -1,24 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Button, Alert, StyleSheet, FlatList } from 'react-native';
+import { View, Text, Button, Alert, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import axios from 'axios';
 import io from 'socket.io-client';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const socket = io('http://192.168.0.100:5000'); // Replace with your server URL
+const socket = io('http://192.168.56.1:5000'); // Replace with your server URL
 
 const MaidRequestScreen = ({ navigation }) => {
-  const [storedMaidUsername, setStoredMaidUsername] = useState(null); // To store the maid's username
+  const [storedMaidUsername, setStoredMaidUsername] = useState(null);
   const [pendingRequests, setPendingRequests] = useState([]);
 
-  // Function to retrieve maid's username from AsyncStorage
   const getStoredMaidUsername = async () => {
     try {
-      const username = await AsyncStorage.getItem('maidUsername'); // Get the username from AsyncStorage
+      const username = await AsyncStorage.getItem('maidUsername');
       if (username) {
-        setStoredMaidUsername(username); // Set the username if it exists
+        setStoredMaidUsername(username);
       } else {
         Alert.alert('Error', 'Maid username not found, please log in again.');
-        navigation.goBack(); // Navigate back if maid username is missing
+        navigation.goBack();
       }
     } catch (error) {
       console.error('Error retrieving maid username:', error);
@@ -26,18 +25,15 @@ const MaidRequestScreen = ({ navigation }) => {
   };
 
   useEffect(() => {
-    // Retrieve maid's username when component mounts
     getStoredMaidUsername();
 
-    // If username is set, register the maid with the socket
     if (storedMaidUsername) {
       socket.emit('registerMaid', storedMaidUsername);
     }
 
-    // Fetch pending requests when the component mounts
     const fetchPendingRequests = async () => {
       try {
-        const response = await axios.get('http://192.168.0.100:5000/requests/pending'); // Adjust this endpoint if necessary
+        const response = await axios.get('http://192.168.56.1:5000/requests/pending');
         setPendingRequests(response.data);
       } catch (error) {
         console.error('Error fetching pending requests:', error);
@@ -47,9 +43,8 @@ const MaidRequestScreen = ({ navigation }) => {
 
     fetchPendingRequests();
 
-    // Listen for maid requests
     socket.on('maidRequest', (request) => {
-      setPendingRequests((prevRequests) => [request, ...prevRequests]); // Add new requests to the top of the list
+      setPendingRequests((prev) => [request, ...prev]);
       Alert.alert(`New request from user: ${request.username}`);
     });
 
@@ -59,38 +54,33 @@ const MaidRequestScreen = ({ navigation }) => {
   }, [storedMaidUsername, navigation]);
 
   const handleAccept = async (requestId) => {
-    const requestToAccept = pendingRequests.find(req => req._id === requestId);
+    const requestToAccept = pendingRequests.find((req) => req._id === requestId);
     if (!requestToAccept) {
       Alert.alert('Error', 'Request not found');
       return;
     }
 
     try {
-      console.log('PUT request data:', { requestId, status: 'accepted' });
-      console.log('POST request data:', { maidUsername: storedMaidUsername, requestData: requestToAccept });
-
-      // Execute both requests in parallel
       await Promise.all([
-        axios.put(`http://192.168.0.100:5000/requests/status/${requestId}`, { status: 'accepted' }),
-        axios.post('http://192.168.0.100:5000/acceptedrequests', {
+        axios.put(`http://192.168.56.1:5000/requests/status/${requestId}`, { status: 'accepted' }),
+        axios.post('http://192.168.56.1:5000/acceptedrequests', {
           maidUsername: storedMaidUsername,
           requestData: requestToAccept,
         }),
       ]);
 
-      // Remove accepted request from the pending list
-      setPendingRequests((prevRequests) => prevRequests.filter((req) => req._id !== requestId));
+      setPendingRequests((prev) => prev.filter((req) => req._id !== requestId));
       Alert.alert('You have accepted the request!');
     } catch (error) {
-      console.error('Error accepting request:', error.response?.data || error.message);
+      console.error('Error accepting request:', error);
       Alert.alert('Error', 'Failed to accept request');
     }
   };
 
   const handleDeny = async (requestId) => {
     try {
-      await axios.put(`http://192.168.0.100:5000/requests/status/${requestId}`, { status: 'denied' });
-      setPendingRequests((prevRequests) => prevRequests.filter((req) => req._id !== requestId)); // Remove denied request from list
+      await axios.put(`http://192.168.56.1:5000/requests/status/${requestId}`, { status: 'denied' });
+      setPendingRequests((prev) => prev.filter((req) => req._id !== requestId));
       Alert.alert('You have denied the request!');
     } catch (error) {
       console.error('Error denying request:', error);
@@ -100,21 +90,26 @@ const MaidRequestScreen = ({ navigation }) => {
 
   const renderRequestItem = ({ item }) => (
     <View style={styles.card}>
-      <Text style={styles.requestText}>User: {item.username}</Text>
-      <Text style={styles.requestText}>Phone: {item.phone}</Text>
-      <Text style={styles.requestText}>Address: {item.address}</Text>
-      <Text style={styles.requestText}>Date: {item.date}</Text>
-      <Text style={styles.requestText}>Time: {item.time}</Text>
-      <Text style={styles.requestText}>Details: {item.details}</Text>
+      <Text style={styles.infoText}>User: {item.username}</Text>
+      <Text style={styles.infoText}>Phone: {item.phone}</Text>
+      <Text style={styles.infoText}>Address: {item.address}</Text>
+      <Text style={styles.infoText}>Date: {item.date}</Text>
+      <Text style={styles.infoText}>Time: {item.time}</Text>
+      <Text style={styles.infoText}>Details: {item.details}</Text>
       <View style={styles.buttonContainer}>
-        <Button title="Accept" onPress={() => handleAccept(item._id)} />
-        <Button title="Deny" onPress={() => handleDeny(item._id)} color="red" />
+        <TouchableOpacity style={styles.button} onPress={() => handleAccept(item._id)}>
+          <Text style={styles.buttonText}>Accept</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.button, styles.denyButton]} onPress={() => handleDeny(item._id)}>
+          <Text style={styles.buttonText}>Deny</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
 
   return (
-    <View style={{ padding: 20 }}>
+    <View style={styles.container}>
+      <Text style={styles.heading}>Your Requests:</Text> 
       {pendingRequests.length > 0 ? (
         <FlatList
           data={pendingRequests}
@@ -122,28 +117,56 @@ const MaidRequestScreen = ({ navigation }) => {
           keyExtractor={(item) => item._id}
         />
       ) : (
-        <Text style={styles.blackText}>No new requests...</Text>
+        <Text style={styles.infoText}>No new requests...</Text>
       )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  blackText: {
-    color: 'black',
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: '#ffffff',
+  },
+  heading: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#4a148c',
+    marginBottom: 20,
+    textAlign: 'center', // Center align the heading
   },
   card: {
     borderWidth: 1,
-    borderColor: '#000',
-    padding: 10,
-    marginBottom: 10,
+    borderColor: '#7b1fa2',
+    borderRadius: 8,
+    padding: 15,
+    marginBottom: 15,
+    backgroundColor: '#f3e5f5',
   },
-  requestText: {
+  infoText: {
+    fontSize: 16,
+    color: '#4a148c',
     marginBottom: 5,
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    marginTop: 10,
+  },
+  button: {
+    backgroundColor: '#4CAF50',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  denyButton: {
+    backgroundColor: '#d32f2f',
+  },
+  buttonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 

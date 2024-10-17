@@ -18,7 +18,7 @@ export default function LoginScreen({ navigation }) {
 
   const handleLogin = async () => {
     try {
-      const response = await axios.post('http://192.168.0.100:5000/auth/login', { username, password });
+      const response = await axios.post('http://192.168.56.1:5000/auth/login', { username, password });
       console.log('Login successful:', response.data);
   
       const { userType } = response.data; // Assuming your response includes userType
@@ -73,7 +73,7 @@ export default function LoginScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f3e5f5', // Light lavender background
+    backgroundColor: '#ffffff', 
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
