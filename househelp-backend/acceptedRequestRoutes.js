@@ -1,15 +1,17 @@
-// acceptedRequestRoutes.js
 const express = require('express');
 const router = express.Router();
-const AcceptedRequest = require('./AcceptedRequest'); // Import your AcceptedRequest model
+const AcceptedRequest = require('./AcceptedRequest');
 
-// Fetch accepted requests for a specific user
-router.get('/:userId', async (req, res) => {
+// GET route to fetch accepted requests for a specific user
+router.get('/:username2', async (req, res) => {
+    const { username2 } = req.params;
+
     try {
-        const acceptedRequests = await AcceptedRequest.find({ userId: req.params.userId });
-        res.json(acceptedRequests);
+        const acceptedRequests = await AcceptedRequest.find({ username2 }); // Fetch requests where username2 matches
+        res.status(200).json(acceptedRequests);
     } catch (error) {
-        res.status(500).json({ error: 'Error fetching accepted requests' });
+        console.error('Error fetching accepted requests:', error);
+        res.status(500).json({ error: 'Server error' });
     }
 });
 
