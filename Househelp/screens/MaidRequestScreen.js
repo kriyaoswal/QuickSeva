@@ -4,7 +4,7 @@ import axios from 'axios';
 import io from 'socket.io-client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const socket = io('http://192.168.56.1:5000'); // Replace with your server URL
+const socket = io('http://192.168.0.104:5000'); // Replace with your server URL
 
 const MaidRequestScreen = ({ navigation }) => {
   const [storedMaidUsername, setStoredMaidUsername] = useState(null);
@@ -33,7 +33,7 @@ const MaidRequestScreen = ({ navigation }) => {
 
     const fetchPendingRequests = async () => {
       try {
-        const response = await axios.get('http://192.168.56.1:5000/requests/pending');
+        const response = await axios.get('http://192.168.0.104:5000/requests/pending');
         setPendingRequests(response.data);
       } catch (error) {
         console.error('Error fetching pending requests:', error);
@@ -62,8 +62,8 @@ const MaidRequestScreen = ({ navigation }) => {
 
     try {
       await Promise.all([
-        axios.put(`http://192.168.56.1:5000/requests/status/${requestId}`, { status: 'accepted' }),
-        axios.post('http://192.168.56.1:5000/acceptedrequests', {
+        axios.put(`http://192.168.0.104:5000/requests/status/${requestId}`, { status: 'accepted' }),
+        axios.post('http://192.168.0.104:5000/acceptedrequests', {
           maidUsername: storedMaidUsername,
           requestData: requestToAccept,
         }),
@@ -79,7 +79,7 @@ const MaidRequestScreen = ({ navigation }) => {
 
   const handleDeny = async (requestId) => {
     try {
-      await axios.put(`http://192.168.56.1:5000/requests/status/${requestId}`, { status: 'denied' });
+      await axios.put(`http://192.168.0.104:5000/requests/status/${requestId}`, { status: 'denied' });
       setPendingRequests((prev) => prev.filter((req) => req._id !== requestId));
       Alert.alert('You have denied the request!');
     } catch (error) {

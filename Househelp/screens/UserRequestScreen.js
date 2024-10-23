@@ -1,11 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, ScrollView 
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+  StyleSheet,
+  ScrollView,
 } from 'react-native';
 import axios from 'axios';
 import io from 'socket.io-client';
 
-const socket = io('http://192.168.56.1:5000'); // Replace with your server URL
+const socket = io('http://192.168.0.104:5000'); // Replace with your server URL
 
 const UserRequestScreen = ({ route }) => {
   const { username } = route.params;
@@ -14,13 +20,13 @@ const UserRequestScreen = ({ route }) => {
   const [details, setDetails] = useState('');
   const [userInfo, setUserInfo] = useState(null);
   const [acceptedMaidInfo, setAcceptedMaidInfo] = useState(null);
-  const [showAcceptedRequest, setShowAcceptedRequest] = useState(false); // Track visibility
-  const isSending = useRef(false); // Ref to track sending status
+  const [showAcceptedRequest, setShowAcceptedRequest] = useState(false);
+  const isSending = useRef(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await axios.get(`http://192.168.56.1:5000/users/${username}`);
+        const response = await axios.get(`http://192.168.0.104:5000/users/${username}`);
         setUserInfo(response.data);
       } catch (error) {
         console.error('Error fetching user data:', error);
@@ -33,10 +39,10 @@ const UserRequestScreen = ({ route }) => {
     socket.on('maidAccepted', async (response) => {
       try {
         const maidResponse = await axios.get(
-          `http://192.168.56.1:5000/acceptedrequests/${response.requestId}`
+          `http://192.168.0.104:5000/acceptedrequests/${response.requestId}`
         );
         setAcceptedMaidInfo(maidResponse.data);
-        setShowAcceptedRequest(true); // Automatically show accepted info
+        setShowAcceptedRequest(true);
         Alert.alert(`Your request has been accepted by maid: ${response.maidUsername}`);
       } catch (error) {
         console.error('Error fetching accepted maid info:', error);
@@ -54,44 +60,41 @@ const UserRequestScreen = ({ route }) => {
       return;
     }
 
-    // Prevent multiple submissions
     if (isSending.current) return;
 
-    isSending.current = true; // Set sending status to true
+    isSending.current = true;
 
     const request = {
       date,
       time,
       details,
-      userId: userInfo._id,
-      username: userInfo.username,
-      phone: userInfo.phone,
-      address: userInfo.address,
+      userId: userInfo ? userInfo._id : null,
+      username: userInfo ? userInfo.username : null,
+      phone: userInfo ? userInfo.phone : null,
+      address: userInfo ? userInfo.address : null,
     };
 
     try {
-      console.log('Sending request:', request); // Log the request
-      await axios.post('http://192.168.56.1:5000/requests', request);
+      console.log('Sending request:', request);
+      await axios.post('http://192.168.0.104:5000/requests', request);
       socket.emit('maidRequest', request);
       Alert.alert('Success', 'Request sent successfully!');
     } catch (error) {
       console.error('Error sending request:', error);
       Alert.alert('Error', 'Failed to send request');
     } finally {
-      isSending.current = false; // Reset sending status
+      isSending.current = false;
     }
   };
 
   const fetchAcceptedRequestInfo = async () => {
     if (showAcceptedRequest) {
-      // Hide the request info if it's already visible
       setAcceptedMaidInfo(null);
       setShowAcceptedRequest(false);
     } else {
-      // Fetch the accepted request info
       try {
         const response = await axios.get(
-          `http://192.168.56.1:5000/acceptedrequests/${userInfo.username}`
+          `http://192.168.0.104:5000/acceptedrequests/${userInfo.username}`
         );
         if (response.data.length > 0) {
           setAcceptedMaidInfo(response.data[0]);
@@ -110,41 +113,44 @@ const UserRequestScreen = ({ route }) => {
     <ScrollView contentContainerStyle={styles.container}>
       {userInfo ? (
         <>
-          <Text style={styles.headerText}>User Info</Text>
-          <Text style={styles.infoText}>Username: {userInfo.username}</Text>
-          <Text style={styles.infoText}>Phone: {userInfo.phone}</Text>
-          <Text style={styles.infoText}>Address: {userInfo.address}</Text>
+          <View style={styles.infoCard}>
+            <Text style={styles.headerText}>User's Information</Text>
+            <Text style={styles.infoText}>Username: {userInfo.username}</Text>
+            <Text style={styles.infoText}>Phone: {userInfo.phone}</Text>
+            <Text style={styles.infoText}>Address: {userInfo.address}</Text>
+          </View>
 
-          <TextInput
-            placeholder="Date (YYYY-MM-DD)"
-            value={date}
-            onChangeText={setDate}
-            style={styles.input}
-            placeholderTextColor="#9c27b0"
-          />
-          <TextInput
-            placeholder="Time (HH:MM)"
-            value={time}
-            onChangeText={setTime}
-            style={styles.input}
-            placeholderTextColor="#9c27b0"
-          />
-          <TextInput
-            placeholder="Details"
-            value={details}
-            onChangeText={setDetails}
-            style={styles.input}
-            placeholderTextColor="#9c27b0"
-          />
+          <View style={styles.requestCard}>
+            <Text style={styles.subHeaderText}>Send Request</Text>
+            <Text style={styles.infoText}>Fill in the below details</Text>
+            <TextInput
+              placeholder="Date (YYYY-MM-DD)"
+              value={date}
+              onChangeText={setDate}
+              style={styles.input}
+              placeholderTextColor="#9c27b0"
+            />
+            <TextInput
+              placeholder="Time (HH:MM)"
+              value={time}
+              onChangeText={setTime}
+              style={styles.input}
+              placeholderTextColor="#9c27b0"
+            />
+            <TextInput
+              placeholder="Details"
+              value={details}
+              onChangeText={setDetails}
+              style={styles.input}
+              placeholderTextColor="#9c27b0"
+            />
+            <TouchableOpacity style={styles.submitButton} onPress={handleRequest}>
+              <Text style={styles.buttonText}>Submit</Text>
+            </TouchableOpacity>
+          </View>
 
-          <TouchableOpacity style={styles.button} onPress={handleRequest}>
-            <Text style={styles.buttonText}>Send Request</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.button} onPress={fetchAcceptedRequestInfo}>
-            <Text style={styles.buttonText}>
-              {showAcceptedRequest ? 'Hide Accepted Request Info' : 'Fetch Accepted Request Info'}
-            </Text>
+          <TouchableOpacity style={styles.fetchButton} onPress={fetchAcceptedRequestInfo}>
+            <Text style={styles.buttonText}>Fetch</Text>
           </TouchableOpacity>
 
           {showAcceptedRequest && acceptedMaidInfo && (
@@ -173,31 +179,61 @@ const styles = StyleSheet.create({
     paddingTop: 30,
     alignItems: 'center',
   },
+  infoCard: {
+    backgroundColor: '#f3e5f5',
+    borderRadius: 10,
+    padding: 20,
+    width: '100%',
+    marginBottom: 20,
+  },
+  requestCard: {
+    backgroundColor: '#f3e5f5',
+    borderRadius: 10,
+    padding: 20,
+    width: '100%',
+    marginBottom: 20,
+  },
   headerText: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#4a148c',
-    marginBottom: 20,
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  subHeaderText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#4a148c',
+    marginBottom: 10,
+    textAlign: 'center',
   },
   infoText: {
     fontSize: 16,
     color: '#4a148c',
     marginBottom: 10,
+    textAlign: 'center',
   },
   input: {
-    width: '80%',
+    width: '100%',
     height: 50,
     borderColor: '#7b1fa2',
     borderWidth: 1,
     borderRadius: 8,
-    marginBottom: 20,
+    marginBottom: 15,
     paddingHorizontal: 15,
     backgroundColor: '#ffffff',
     color: '#4a148c',
   },
-  button: {
-    backgroundColor: '#7b1fa2',
-    width: '80%',
+  submitButton: {
+    backgroundColor: '#9c27b0',
+    width: '100%',
+    paddingVertical: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  fetchButton: {
+    backgroundColor: '#9c27b0',
+    width: '100%',
     paddingVertical: 15,
     borderRadius: 8,
     alignItems: 'center',
@@ -210,12 +246,12 @@ const styles = StyleSheet.create({
   },
   maidInfoContainer: {
     marginTop: 20,
-    padding: 10,
+    padding: 15,
     borderWidth: 1,
     borderColor: '#7b1fa2',
     borderRadius: 8,
     backgroundColor: '#f3e5f5',
-    width: '90%',
+    width: '100%',
   },
 });
 
