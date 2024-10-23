@@ -1,6 +1,6 @@
 // screens/SelectUserTypeScreen.jsx
 import React, { useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 
 export default function SelectUserTypeScreen({ navigation }) {
   useEffect(() => {
@@ -9,6 +9,12 @@ export default function SelectUserTypeScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
+      {/* Top-left image */}
+      <Image
+        source={require('../assets/images/QuickSeva(3).png')} // Add your image path here
+        style={styles.topLeftImage}
+      />
+
       <Text style={styles.title}>Select Account Type</Text>
       
       <TouchableOpacity 
@@ -24,6 +30,12 @@ export default function SelectUserTypeScreen({ navigation }) {
       >
         <Text style={styles.optionText}>Maid</Text>
       </TouchableOpacity>
+
+      {/* Bottom-right image */}
+      <Image
+        source={require('../assets/images/QuickSeva(3).png')} // Add your image path here
+        style={styles.bottomRightImage}
+      />
     </View>
   );
 }
@@ -32,20 +44,20 @@ export default function SelectUserTypeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff', // Light lavender background for a soft touch
+    backgroundColor: '#ffffff',
     justifyContent: 'center',
     alignItems: 'center',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#4a148c', // Deep purple for the title text to stand out
+    color: '#4a148c',
     marginBottom: 30,
   },
   optionButton: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#7b1fa2', // Medium purple for buttons
+    backgroundColor: '#7b1fa2',
     paddingVertical: 15,
     paddingHorizontal: 30,
     borderRadius: 10,
@@ -54,6 +66,22 @@ const styles = StyleSheet.create({
   },
   optionText: {
     fontSize: 18,
-    color: '#f3e5f5', // Light lavender text color on dark purple buttons for good contrast
+    color: '#f3e5f5',
+  },
+  topLeftImage: {
+    position: 'absolute',
+    top: -70,
+    left: -80,
+    width: 300,
+    height: 300,
+    resizeMode: 'contain',
+  },
+  bottomRightImage: {
+    position: 'absolute',
+    bottom: -150,
+    right: -80,
+    width: 300,
+    height: 300,
+    resizeMode: 'contain',
   },
 });

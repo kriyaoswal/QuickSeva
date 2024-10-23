@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TextInput, Button, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
 
@@ -38,6 +38,12 @@ export default function LoginScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
+      {/* Top-left image */}
+      <Image
+        source={require('../assets/images/QuickSeva(3).png')} // Add your image path here
+        style={styles.topLeftImage}
+      />
+      
       <Text style={styles.headerText}>Login</Text>
 
       <TextInput
@@ -66,6 +72,12 @@ export default function LoginScreen({ navigation }) {
           <Text style={styles.signupLink}> Sign up</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Bottom-right image */}
+      <Image
+        source={require('../assets/images/QuickSeva(3).png')} // Add your image path here
+        style={styles.bottomRightImage}
+      />
     </View>
   );
 }
@@ -124,5 +136,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginTop: 5,
+  },
+  topLeftImage: {
+    position: 'absolute',
+    top: -70,
+    left: -80,
+    width: 300,
+    height: 300,
+    resizeMode: 'contain',
+  },
+  bottomRightImage: {
+    position: 'absolute',
+    bottom: -150,
+    right: -80,
+    width: 300,
+    height: 300,
+    resizeMode: 'contain',
   },
 });
